@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My User App</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; margin: 0; padding-bottom: 70px; }
+        
+        /* হেডার ও সার্চ */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 15px; border-bottom-left-radius: 25px; border-bottom-right-radius: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); color: white; position: sticky; top: 0; z-index: 1000;
+        }
+        .header h2 { margin: 0 0 10px 0; text-align: center; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .search-box {
+            width: 100%; padding: 15px; border-radius: 30px; border: none; font-size: 16px;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); outline: none; box-sizing: border-box;
+        }
+
+        /* কন্টেন্ট সেকশন */
+        .container { padding: 15px; }
+        .section { display: none; animation: fadeIn 0.5s; }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* মূল 3D ভিডিও কার্ড ডিজাইন (প্রথম কোড অনুযায়ী ফিক্সড) */
+        .card {
+            background: white; border-radius: 15px; overflow: hidden; margin-bottom: 20px;
+            /* থ্রিডি লুকের জন্য মূল CSS */
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15); 
+            transform: perspective(1000px) rotateX(0deg); 
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover { 
+            transform: perspective(1000px) rotateX(2deg) translateY(-5px); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25); 
+        }
+        .card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .card-content { padding: 15px; }
+        .card-title { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #333; }
+        .search-tag-display { font-size: 12px; color: #888; margin-bottom: 10px; display: inline-block; background: #f0f0f0; padding: 3px 8px; border-radius: 10px;}
+        
+        .btn-watch {
+            display: block; width: 100%; padding: 12px; background: linear-gradient(90deg, #ff416c, #ff4b2b);
+            color: white; text-align: center; text-decoration: none; border-radius: 25px; font-weight: bold;
+            box-shadow: 0 4px 10px rgba(255, 65, 108, 0.4); margin-top: 10px;
+        }
+
+        /* ডাউনলোড লিস্ট */
+        .dl-item { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); }
+        .dl-btn { background: #00b09b; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px; font-size: 14px; }
+
+        /* প্রোফাইল বাটন (3D Coloring) */
+        .social-btn { display: block; margin: 15px 0; padding: 15px; color: white; text-align: center; text-decoration: none; font-size: 18px; font-weight: bold; border-radius: 12px; box-shadow: 0 5px 0 rgba(0,0,0,0.2); transition: 0.1s; }
+        .social-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+        .yt { background: #FF0000; box-shadow: 0 5px 0 #cc0000; }
+        .tg { background: #0088cc; box-shadow: 0 5px 0 #005580; }
+        .tk { background: #000000; box-shadow: 0 5px 0 #333333; }
+
+        /* ফুটার মেনু ফিক্সড */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around;
+            padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 1000;
+        }
+        .nav-item { 
+            border: none; background: none; font-size: 24px; cursor: pointer; color: #aaa; 
+            position: relative; 
+        }
+        
+        /* ফিক্স: গ্রিন দাগ/Indicator */
+        .nav-item.active-nav { 
+            color: #764ba2; 
+        }
+        .nav-item.active-nav::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 4px; 
+            background-color: #5cb85c; /* গ্রিন কালার */
+            border-radius: 2px;
+        }
+
+        /* নোটিশ */
+        .notice-bar { background: #222; color: yellow; font-weight: bold; padding: 5px; font-size: 13px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>🔥 My Video App</h2>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 সার্চ নেম দিয়ে খুঁজুন...">
+        </div>
+    </div>
+
+    <div class="notice-bar">
+        <marquee id="marqueeNotice">নোটিশ লোড হচ্ছে...</marquee>
+    </div>
+
+    <div id="home" class="container section active">
+        <div id="videoList">
+            <p style="text-align:center; color:#666;">ভিডিও লোড হচ্ছে...</p>
+        </div>
+    </div>
+
+    <div id="downloads" class="container section">
+        <h3 style="text-align:center;">All Files & Apps</h3>
+        <div id="downloadList"></div>
+    </div>
+
+    <div id="profile" class="container section">
+        <h3 style="text-align:center;">Connect With Us</h3>
+        <a id="linkYT" href="#" class="social-btn yt">YouTube Channel</a>
+        <a id="linkTG" href="#" class="social-btn tg">Telegram Channel</a>
+        <a id="linkTK" href="#" class="social-btn tk">TikTok ID</a>
+    </div>
+
+    <div class="bottom-nav">
+        <button onclick="nav('home', this)" class="nav-item active-nav">🏠</button>
+        <button onclick="nav('downloads', this)" class="nav-item">⬇️</button>
+        <button onclick="nav('profile', this)" class="nav-item">👤</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        // আপনার দেওয়া কনফিগারেশন
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3ahEXkBojyP-eESyFgAn_2DmOoRIarKA",
+            authDomain: "my-apps-bd799.firebaseapp.com",
+            projectId: "my-apps-bd799",
+            storageBucket: "my-apps-bd799.firebasestorage.app",
+            messagingSenderId: "231442228182",
+            appId: "1:231442228182:web:d21975d9c9865cefc7ba77",
+            measurementId: "G-0RZ8VL7JMG"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ১. ভিডিও লোড এবং সার্চ লজিক
+        let allVideos = [];
+        db.collection("videos").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
+            const list = document.getElementById("videoList");
+            list.innerHTML = "";
+            allVideos = [];
+            if(snapshot.empty) {
+                list.innerHTML = "<p style='text-align:center'>কোন ভিডিও নেই</p>";
+                return;
+            }
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                allVideos.push(data);
+                renderVideo(list, data);
+            });
+        });
+
+        function renderVideo(container, data) {
+            const html = `<div class="card">
+                    <img src="${data.thumbnail}" alt="Thumbnail">
+                    <div class="card-content">
+                        <div class="card-title">${data.title}</div>
+                        <span class="search-tag-display">🔍 ${data.searchTag}</span>
+                        <a href="${data.link}" target="_blank" class="btn-watch">▶ ভিডিও দেখুন</a>
+                    </div>
+                </div>`;
+            container.innerHTML += html;
+        }
+
+        document.getElementById("searchInput").addEventListener("input", function(e) {
+            const searchText = e.target.value.toLowerCase().trim();
+            const list = document.getElementById("videoList");
+            list.innerHTML = "";
+            const filteredVideos = allVideos.filter(video => 
+                (video.searchTag && video.searchTag.toLowerCase().includes(searchText)) || 
+                (video.title && video.title.toLowerCase().includes(searchText))
+            );
+            if(filteredVideos.length === 0) {
+                list.innerHTML = "<p style='text-align:center; margin-top:20px;'>কোন ভিডিও পাওয়া যায়নি</p>";
+            } else {
+                filteredVideos.forEach(vid => renderVideo(list, vid));
+            }
+        });
+        
+        // ২. ডাউনলোড ফাইল লোড
+        db.collection("downloads").onSnapshot((snapshot) => {
+            const dList = document.getElementById("downloadList");
+            dList.innerHTML = "";
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                dList.innerHTML += `<div class="dl-item">
+                        <div><div style="font-weight:bold; color:#333;">${d.name}</div><small style="color:#666;">Type: ${d.type}</small></div>
+                        <a href="${d.link}" target="_blank" class="dl-btn">Download</a>
+                    </div>`;
+            });
+        });
+
+        // ৩. সেটিংস এবং নোটিশ লোড
+        db.collection("settings").doc("config").onSnapshot((doc) => {
+            if(doc.exists) {
+                const s = doc.data();
+                document.getElementById("marqueeNotice").innerText = s.notice || "স্বাগতম!";
+                document.getElementById("linkYT").href = s.youtube || "#";
+                document.getElementById("linkTG").href = s.telegram || "#";
+                document.getElementById("linkTK").href = s.tiktok || "#";
+            }
+        });
+
+        // ৪. নেভিগেশন কন্ট্রোল (ফিক্সড)
+        function nav(sectionId, buttonElement) {
+            // সেকশন চেঞ্জ
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            
+            // বাটন হাইলাইট: আগে সব বাটন থেকে active-nav সরাবে, তারপর ক্লিক করা বাটনে active-nav দেবে
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active-nav'));
+            buttonElement.classList.add('active-nav');
+        }
+    </script>
+</body>
+</html>
